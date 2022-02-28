@@ -14,6 +14,7 @@ export * from './classes/index';
 export * from './dom/index'
 export * from './env/index';
 export * from './faceExpressionNet/index';
+export * from './faceArousalNet/index';
 export * from './faceLandmarkNet/index';
 export * from './faceRecognitionNet/index';
 export * from './factories/index';

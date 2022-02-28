@@ -1319,10 +1319,10 @@
       // check for isBrowser() first to prevent electron renderer process
       // to be initialized with wrong environment due to isNodejs() returning true
       if (isBrowser()) {
-          setEnv(createBrowserEnv());
+          return setEnv(createBrowserEnv());
       }
       if (isNodejs()) {
-          setEnv(createNodejsEnv());
+          return setEnv(createNodejsEnv());
       }
   }
   function monkeyPatch(env) {
@@ -3122,6 +3122,78 @@
       };
       return AgeGenderNet;
   }(NeuralNetwork));
+
+  var FaceArousalNet = /** @class */ (function (_super) {
+      __extends(FaceArousalNet, _super);
+      function FaceArousalNet(faceFeatureExtractor) {
+          if (faceFeatureExtractor === void 0) { faceFeatureExtractor = new FaceFeatureExtractor(); }
+          return _super.call(this, 'FaceArousalNet', faceFeatureExtractor) || this;
+      }
+      FaceArousalNet.prototype.forwardInput = function (input) {
+          var _this = this;
+          return Ze(function () { return _this.runNet(input); });
+      };
+      FaceArousalNet.prototype.forward = function (input) {
+          return __awaiter(this, void 0, void 0, function () {
+              var _a;
+              return __generator(this, function (_b) {
+                  switch (_b.label) {
+                      case 0:
+                          _a = this.forwardInput;
+                          return [4 /*yield*/, toNetInput(input)];
+                      case 1: return [2 /*return*/, _a.apply(this, [_b.sent()])];
+                  }
+              });
+          });
+      };
+      FaceArousalNet.prototype.predictArousal = function (input) {
+          return __awaiter(this, void 0, void 0, function () {
+              var netInput, out, probabilitesByBatch, predictionsByBatch;
+              var _this = this;
+              return __generator(this, function (_a) {
+                  switch (_a.label) {
+                      case 0: return [4 /*yield*/, toNetInput(input)];
+                      case 1:
+                          netInput = _a.sent();
+                          return [4 /*yield*/, this.forwardInput(netInput)];
+                      case 2:
+                          out = _a.sent();
+                          return [4 /*yield*/, Promise.all(Ur(out).map(function (t) { return __awaiter(_this, void 0, void 0, function () {
+                                  var data;
+                                  return __generator(this, function (_a) {
+                                      switch (_a.label) {
+                                          case 0: return [4 /*yield*/, t.data()];
+                                          case 1:
+                                              data = _a.sent();
+                                              t.dispose();
+                                              return [2 /*return*/, data];
+                                      }
+                                  });
+                              }); }))];
+                      case 3:
+                          probabilitesByBatch = _a.sent();
+                          out.dispose();
+                          predictionsByBatch = probabilitesByBatch // no need to map to FaceExpressions
+                          ;
+                          //.map(probabilites => new FaceExpressions(probabilites as Float32Array))
+                          return [2 /*return*/, netInput.isBatchInput
+                                  ? predictionsByBatch
+                                  : predictionsByBatch[0]];
+                  }
+              });
+          });
+      };
+      FaceArousalNet.prototype.getDefaultModelName = function () {
+          return 'face_arousal_model';
+      };
+      FaceArousalNet.prototype.getClassifierChannelsIn = function () {
+          return 256;
+      };
+      FaceArousalNet.prototype.getClassifierChannelsOut = function () {
+          return 1;
+      };
+      return FaceArousalNet;
+  }(FaceProcessor));
 
   var FaceLandmark68NetBase = /** @class */ (function (_super) {
       __extends(FaceLandmark68NetBase, _super);
@@ -5641,6 +5713,7 @@
       faceLandmark68TinyNet: new FaceLandmark68TinyNet(),
       faceRecognitionNet: new FaceRecognitionNet(),
       faceExpressionNet: new FaceExpressionNet(),
+      faceArousalNet: new FaceArousalNet(),
       ageGenderNet: new AgeGenderNet()
   };
   /**
@@ -5720,6 +5793,16 @@
       return nets.faceRecognitionNet.computeFaceDescriptor(input);
   };
   /**
+   * Recognizes the arousal score from a face image.
+   *
+   * @param inputs The face image extracted from the bounding box of a face. Can
+   * also be an array of input images, which will be batch processed.
+   * @returns Arousal scores or array thereof in case of batch input.
+   */
+  var recognizeFaceArousal = function (input) {
+      return nets.faceArousalNet.predictArousal(input);
+  };
+  /**
    * Recognizes the facial expressions from a face image.
    *
    * @param inputs The face image extracted from the bounding box of a face. Can
@@ -5747,6 +5830,7 @@
   var loadFaceLandmarkTinyModel = function (url) { return nets.faceLandmark68TinyNet.load(url); };
   var loadFaceRecognitionModel = function (url) { return nets.faceRecognitionNet.load(url); };
   var loadFaceExpressionModel = function (url) { return nets.faceExpressionNet.load(url); };
+  var loadFaceArousalModel = function (url) { return nets.faceArousalNet.load(url); };
   var loadAgeGenderModel = function (url) { return nets.ageGenderNet.load(url); };
   // backward compatibility
   var loadFaceDetectionModel = loadSsdMobilenetv1Model;
@@ -6452,6 +6536,7 @@
   exports.DetectSingleFaceTask = DetectSingleFaceTask;
   exports.Dimensions = Dimensions;
   exports.FACE_EXPRESSION_LABELS = FACE_EXPRESSION_LABELS;
+  exports.FaceArousalNet = FaceArousalNet;
   exports.FaceDetection = FaceDetection;
   exports.FaceDetectionNet = FaceDetectionNet;
   exports.FaceExpressionNet = FaceExpressionNet;
@@ -6530,6 +6615,7 @@
   exports.isWithFaceLandmarks = isWithFaceLandmarks;
   exports.isWithGender = isWithGender;
   exports.loadAgeGenderModel = loadAgeGenderModel;
+  exports.loadFaceArousalModel = loadFaceArousalModel;
   exports.loadFaceDetectionModel = loadFaceDetectionModel;
   exports.loadFaceExpressionModel = loadFaceExpressionModel;
   exports.loadFaceLandmarkModel = loadFaceLandmarkModel;
@@ -6549,6 +6635,7 @@
   exports.normalize = normalize;
   exports.padToSquare = padToSquare;
   exports.predictAgeAndGender = predictAgeAndGender;
+  exports.recognizeFaceArousal = recognizeFaceArousal;
   exports.recognizeFaceExpressions = recognizeFaceExpressions;
   exports.resizeResults = resizeResults;
   exports.resolveInput = resolveInput;
