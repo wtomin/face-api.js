@@ -19,7 +19,7 @@ export class FaceArousalNet extends FaceProcessor<FaceFeatureExtractorParams> {
     return this.forwardInput(await toNetInput(input))
   }
 
-  public async predictArousal(input: TNetInput) {
+  public async predictArousal(input: TNetInput){
     const netInput = await toNetInput(input)
     const out = await this.forwardInput(netInput)
     const probabilitesByBatch = await Promise.all(tf.unstack(out).map(async t => {
