@@ -6,6 +6,7 @@ import {
   FaceFeatureExtractorParams,
   IFaceFeatureExtractor,
   TinyFaceFeatureExtractorParams,
+  ExtendedFaceFeatureExtractorParams,
 } from '../faceFeatureExtractor/types';
 import { NeuralNetwork } from '../NeuralNetwork';
 import { extractParams } from './extractParams';
@@ -14,7 +15,7 @@ import { NetParams } from './types';
 import { seperateWeightMaps } from './util';
 
 export abstract class FaceProcessor<
-  TExtractorParams extends FaceFeatureExtractorParams | TinyFaceFeatureExtractorParams
+  TExtractorParams extends FaceFeatureExtractorParams | TinyFaceFeatureExtractorParams | ExtendedFaceFeatureExtractorParams
 >
   extends NeuralNetwork<NetParams> {
 
