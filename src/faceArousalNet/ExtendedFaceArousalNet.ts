@@ -1,4 +1,3 @@
-
 import * as tf from '@tensorflow/tfjs-core';
 
 import { NetInput, TNetInput, toNetInput } from '../dom';
