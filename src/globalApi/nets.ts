@@ -7,6 +7,7 @@ import { TNetInput } from '../dom';
 import { FaceExpressionNet } from '../faceExpressionNet/FaceExpressionNet';
 import { FaceExpressions } from '../faceExpressionNet/FaceExpressions';
 import { FaceArousalNet } from '../faceArousalNet/FaceArousalNet';
+import { ExtendedFaceArousalNet } from '../faceArousalNet/ExtendedFaceArousalNet';
 import { FaceLandmark68Net } from '../faceLandmarkNet/FaceLandmark68Net';
 import { FaceLandmark68TinyNet } from '../faceLandmarkNet/FaceLandmark68TinyNet';
 import { FaceRecognitionNet } from '../faceRecognitionNet/FaceRecognitionNet';
@@ -30,6 +31,7 @@ export const nets = {
   faceRecognitionNet: new FaceRecognitionNet(),
   faceExpressionNet: new FaceExpressionNet(),
   faceArousalNet: new FaceArousalNet(),
+  faceArousalNetExtended: new ExtendedFaceArousalNet(),
   ageGenderNet: new AgeGenderNet()
 }
 
@@ -119,6 +121,16 @@ export const computeFaceDescriptor = (input: TNetInput): Promise<Float32Array | 
 export const recognizeFaceArousal = (input: TNetInput)=>
   nets.faceArousalNet.predictArousal(input)
 
+/**
+ * Recognizes the arousal score from a face image.
+ *
+ * @param inputs The face image extracted from the bounding box of a face. Can
+ * also be an array of input images, which will be batch processed.
+ * @returns Arousal scores or array thereof in case of batch input.
+ */
+export const recognizeFaceArousalExtended = (input: TNetInput)=>
+  nets.faceArousalNetExtended.predictArousal(input)
+
 
 /**
  * Recognizes the facial expressions from a face image.ga
@@ -150,6 +162,7 @@ export const loadFaceLandmarkTinyModel = (url: string) => nets.faceLandmark68Tin
 export const loadFaceRecognitionModel = (url: string) => nets.faceRecognitionNet.load(url)
 export const loadFaceExpressionModel = (url: string) => nets.faceExpressionNet.load(url)
 export const loadFaceArousalModel = (url: string) => nets.faceArousalNet.load(url)
+export const loadFaceArousalModelExtended = (url: string) => nets.faceArousalNetExtended.load(url)
 export const loadAgeGenderModel = (url: string) => nets.ageGenderNet.load(url)
 
 // backward compatibility
