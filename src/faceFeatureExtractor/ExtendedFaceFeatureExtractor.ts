@@ -31,7 +31,7 @@ export class ExtendedFaceFeatureExtractor extends NeuralNetwork<ExtendedFaceFeat
       out = denseBlock4(out, params.dense1)
       out = denseBlock4(out, params.dense2)
       out = denseBlock4(out, params.dense3)
-      out = denseBlock4(out, params.dense4) // an addition block 
+      out = denseBlock4(out, params.dense4, false, false) // an addition block 
       out = tf.avgPool(out, [7, 7], [2, 2], 'valid')
 
       return out
