@@ -43,7 +43,14 @@ export type FaceFeatureExtractorParams = {
   dense3: DenseBlock4Params
 }
 
-export interface IFaceFeatureExtractor<TNetParams extends TinyFaceFeatureExtractorParams | FaceFeatureExtractorParams> extends NeuralNetwork<TNetParams> {
+export type ExtendedFaceFeatureExtractorParams = {
+  dense0: DenseBlock4Params
+  dense1: DenseBlock4Params
+  dense2: DenseBlock4Params
+  dense3: DenseBlock4Params
+  dense4: DenseBlock4Params
+}
+export interface IFaceFeatureExtractor<TNetParams extends TinyFaceFeatureExtractorParams | FaceFeatureExtractorParams | ExtendedFaceFeatureExtractorParams> extends NeuralNetwork<TNetParams> {
   forwardInput(input: NetInput): tf.Tensor4D
   forward(input: TNetInput): Promise<tf.Tensor4D>
 }
