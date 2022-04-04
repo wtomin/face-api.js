@@ -20,7 +20,7 @@ export function extractParamsExtended(weights: Float32Array): { params: Extended
   const dense1 = extractDenseBlock4Params(32, 64, 'dense1')
   const dense2 = extractDenseBlock4Params(64, 128, 'dense2')
   const dense3 = extractDenseBlock4Params(128, 256, 'dense3')
-  const dense4 = extractDenseBlock4Params(256, 512, 'dense4', false, false)
+  const dense4 = extractDenseBlock4Params(256, 512, 'dense4', false)
 
   if (getRemainingWeights().length !== 0) {
     throw new Error(`weights remaing after extract: ${getRemainingWeights().length}`)

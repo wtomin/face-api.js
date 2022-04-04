@@ -19,7 +19,7 @@ export function extractParamsFromWeigthMapExtended(
     dense1: extractDenseBlock4Params('dense1'),
     dense2: extractDenseBlock4Params('dense2'),
     dense3: extractDenseBlock4Params('dense3'),
-    dense4: extractDenseBlock4Params('dense4', false, false) // isfirstlayer=false, isScaleDown=False
+    dense4: extractDenseBlock4Params('dense4', false) // isfirstlayer=false, isScaleDown=False
   }
 
   disposeUnusedWeightTensors(weightMap, paramMappings)

@@ -4,11 +4,11 @@ import { NetInput, TNetInput, toNetInput } from '../dom';
 import { NeuralNetwork } from '../NeuralNetwork';
 import { normalize } from '../ops';
 import { denseBlock4 } from './denseBlock';
-import { extractParamsExtended } from './extractParamsExtended '; 
+import { extractParamsExtended } from './extractParamsExtended'; 
 import { extractParamsFromWeigthMapExtended } from './extractParamsFromWeigthMapExtended'; 
 import { ExtendedFaceFeatureExtractorParams, IFaceFeatureExtractor } from './types'; 
 
-export class ExtendedFaceFeatureExtractor extends NeuralNetwork<ExtendedFaceFeatureExtractorParams> implements IFaceFeatureExtractor<FaceFeatureExtractorParams> {
+export class ExtendedFaceFeatureExtractor extends NeuralNetwork<ExtendedFaceFeatureExtractorParams> implements IFaceFeatureExtractor<ExtendedFaceFeatureExtractorParams> {
 
   constructor() {
     super('ExtendedFaceFeatureExtractor')
