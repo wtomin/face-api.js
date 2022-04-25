@@ -1,6 +1,7 @@
 import { FCParams } from '../common';
 
 export type NetParams = {
-  fc: FCParams
+  fc_1: FCParams,
+  fc_2: FCParams
 }
 
