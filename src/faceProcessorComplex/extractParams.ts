@@ -22,6 +22,6 @@ export function extractParams(weights: Float32Array, channelsIn: number, channel
 
   return {
     paramMappings,
-    params: { fc_1, fc_2 }
+    params: { fc: { fc_1, fc_2 } }
   }
 }
