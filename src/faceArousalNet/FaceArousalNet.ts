@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import { NetInput, TNetInput, toNetInput } from '../dom';
 import { FaceFeatureExtractor } from '../faceFeatureExtractor/FaceFeatureExtractor';
 import { FaceFeatureExtractorParams } from '../faceFeatureExtractor/types';
-import { FaceProcessor } from '../faceProcessor/FaceProcessor';
+import { FaceProcessor } from '../faceProcessorComplex/FaceProcessor';
 
 export class FaceArousalNet extends FaceProcessor<FaceFeatureExtractorParams> {
 
@@ -44,7 +44,9 @@ export class FaceArousalNet extends FaceProcessor<FaceFeatureExtractorParams> {
   protected getClassifierChannelsIn(): number {
     return 256
   }
-
+  protected getClassifierChannelsHidden(): number {
+    return 128
+  }
   protected getClassifierChannelsOut(): number {
     return 1
   }

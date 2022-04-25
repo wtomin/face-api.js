@@ -3123,6 +3123,105 @@
       return AgeGenderNet;
   }(NeuralNetwork));
 
+  function extractParams$4(weights, channelsIn, channelsHidden, channelsOut) {
+      var paramMappings = [];
+      var _a = extractWeightsFactory(weights), extractWeights = _a.extractWeights, getRemainingWeights = _a.getRemainingWeights;
+      var extractFCParams = extractFCParamsFactory(extractWeights, paramMappings);
+      var fc_1 = extractFCParams(channelsIn, channelsHidden, 'fc_1');
+      var fc_2 = extractFCParams(channelsHidden, channelsOut, 'fc_2');
+      if (getRemainingWeights().length !== 0) {
+          throw new Error("weights remaing after extract: " + getRemainingWeights().length);
+      }
+      return {
+          paramMappings: paramMappings,
+          params: { fc_1: fc_1, fc_2: fc_2 }
+      };
+  }
+
+  function extractParamsFromWeigthMap$4(weightMap) {
+      var paramMappings = [];
+      var extractWeightEntry = extractWeightEntryFactory(weightMap, paramMappings);
+      function extractFcParams(prefix) {
+          var weights = extractWeightEntry(prefix + "/weights", 2);
+          var bias = extractWeightEntry(prefix + "/bias", 1);
+          return { weights: weights, bias: bias };
+      }
+      var params = {
+          fc_1: extractFcParams('fc_1'),
+          fc_2: extractFcParams('fc_2')
+      };
+      disposeUnusedWeightTensors(weightMap, paramMappings);
+      return { params: params, paramMappings: paramMappings };
+  }
+
+  function seperateWeightMaps$1(weightMap) {
+      var featureExtractorMap = {};
+      var classifierMap = {};
+      Object.keys(weightMap).forEach(function (key) {
+          var map = key.startsWith('fc') ? classifierMap : featureExtractorMap;
+          map[key] = weightMap[key];
+      });
+      return { featureExtractorMap: featureExtractorMap, classifierMap: classifierMap };
+  }
+
+  var FaceProcessor$1 = /** @class */ (function (_super) {
+      __extends(FaceProcessor, _super);
+      function FaceProcessor(_name, faceFeatureExtractor) {
+          var _this = _super.call(this, _name) || this;
+          _this._faceFeatureExtractor = faceFeatureExtractor;
+          return _this;
+      }
+      Object.defineProperty(FaceProcessor.prototype, "faceFeatureExtractor", {
+          get: function () {
+              return this._faceFeatureExtractor;
+          },
+          enumerable: true,
+          configurable: true
+      });
+      FaceProcessor.prototype.runNet = function (input) {
+          var _this = this;
+          var params = this.params;
+          if (!params) {
+              throw new Error(this._name + " - load model before inference");
+          }
+          return Ze(function () {
+              var bottleneckFeatures = input instanceof NetInput
+                  ? _this.faceFeatureExtractor.forwardInput(input)
+                  : input;
+              return fullyConnectedLayer(Bl(fullyConnectedLayer(bottleneckFeatures.as2D(bottleneckFeatures.shape[0], -1), params.fc_1)), params.fc_2);
+          });
+      };
+      FaceProcessor.prototype.dispose = function (throwOnRedispose) {
+          if (throwOnRedispose === void 0) { throwOnRedispose = true; }
+          this.faceFeatureExtractor.dispose(throwOnRedispose);
+          _super.prototype.dispose.call(this, throwOnRedispose);
+      };
+      FaceProcessor.prototype.loadClassifierParams = function (weights) {
+          var _a = this.extractClassifierParams(weights), params = _a.params, paramMappings = _a.paramMappings;
+          this._params = params;
+          this._paramMappings = paramMappings;
+      };
+      FaceProcessor.prototype.extractClassifierParams = function (weights) {
+          return extractParams$4(weights, this.getClassifierChannelsIn(), this.getClassifierChannelsHidden(), this.getClassifierChannelsOut());
+      };
+      FaceProcessor.prototype.extractParamsFromWeigthMap = function (weightMap) {
+          var _a = seperateWeightMaps$1(weightMap), featureExtractorMap = _a.featureExtractorMap, classifierMap = _a.classifierMap;
+          this.faceFeatureExtractor.loadFromWeightMap(featureExtractorMap);
+          return extractParamsFromWeigthMap$4(classifierMap);
+      };
+      FaceProcessor.prototype.extractParams = function (weights) {
+          var cIn = this.getClassifierChannelsIn();
+          var cHidden = this.getClassifierChannelsHidden();
+          var cOut = this.getClassifierChannelsOut();
+          var classifierWeightSize = (cOut * cHidden) + cHidden + (cOut * cOut) + cOut;
+          var featureExtractorWeights = weights.slice(0, weights.length - classifierWeightSize);
+          var classifierWeights = weights.slice(weights.length - classifierWeightSize);
+          this.faceFeatureExtractor.extractWeights(featureExtractorWeights);
+          return this.extractClassifierParams(classifierWeights);
+      };
+      return FaceProcessor;
+  }(NeuralNetwork));
+
   var FaceArousalNet = /** @class */ (function (_super) {
       __extends(FaceArousalNet, _super);
       function FaceArousalNet(faceFeatureExtractor) {
@@ -3189,11 +3288,14 @@
       FaceArousalNet.prototype.getClassifierChannelsIn = function () {
           return 256;
       };
+      FaceArousalNet.prototype.getClassifierChannelsHidden = function () {
+          return 128;
+      };
       FaceArousalNet.prototype.getClassifierChannelsOut = function () {
           return 1;
       };
       return FaceArousalNet;
-  }(FaceProcessor));
+  }(FaceProcessor$1));
 
   function extractParamsExtended(weights) {
       var paramMappings = [];
@@ -3341,11 +3443,14 @@
       ExtendedFaceArousalNet.prototype.getClassifierChannelsIn = function () {
           return 512;
       };
+      ExtendedFaceArousalNet.prototype.getClassifierChannelsHidden = function () {
+          return 128;
+      };
       ExtendedFaceArousalNet.prototype.getClassifierChannelsOut = function () {
           return 1;
       };
       return ExtendedFaceArousalNet;
-  }(FaceProcessor));
+  }(FaceProcessor$1));
 
   var FaceLandmark68NetBase = /** @class */ (function (_super) {
       __extends(FaceLandmark68NetBase, _super);
@@ -3627,7 +3732,7 @@
           extractResidualLayerParams: extractResidualLayerParams
       };
   }
-  function extractParams$4(weights) {
+  function extractParams$5(weights) {
       var _a = extractWeightsFactory(weights), extractWeights = _a.extractWeights, getRemainingWeights = _a.getRemainingWeights;
       var paramMappings = [];
       var _b = extractorsFactory$2(extractWeights, paramMappings), extractConvLayerParams = _b.extractConvLayerParams, extractResidualLayerParams = _b.extractResidualLayerParams;
@@ -3696,7 +3801,7 @@
           extractResidualLayerParams: extractResidualLayerParams
       };
   }
-  function extractParamsFromWeigthMap$4(weightMap) {
+  function extractParamsFromWeigthMap$5(weightMap) {
       var paramMappings = [];
       var _a = extractorsFactory$3(weightMap, paramMappings), extractConvLayerParams = _a.extractConvLayerParams, extractResidualLayerParams = _a.extractResidualLayerParams;
       var conv32_down = extractConvLayerParams('conv32_down');
@@ -3844,10 +3949,10 @@
           return 'face_recognition_model';
       };
       FaceRecognitionNet.prototype.extractParamsFromWeigthMap = function (weightMap) {
-          return extractParamsFromWeigthMap$4(weightMap);
+          return extractParamsFromWeigthMap$5(weightMap);
       };
       FaceRecognitionNet.prototype.extractParams = function (weights) {
-          return extractParams$4(weights);
+          return extractParams$5(weights);
       };
       return FaceRecognitionNet;
   }(NeuralNetwork));
@@ -4069,7 +4174,7 @@
           extractPredictionLayerParams: extractPredictionLayerParams
       };
   }
-  function extractParams$5(weights) {
+  function extractParams$6(weights) {
       var paramMappings = [];
       var _a = extractWeightsFactory(weights), extractWeights = _a.extractWeights, getRemainingWeights = _a.getRemainingWeights;
       var _b = extractorsFactory$4(extractWeights, paramMappings), extractMobilenetV1Params = _b.extractMobilenetV1Params, extractPredictionLayerParams = _b.extractPredictionLayerParams;
@@ -4172,7 +4277,7 @@
           extractPredictionLayerParams: extractPredictionLayerParams
       };
   }
-  function extractParamsFromWeigthMap$5(weightMap) {
+  function extractParamsFromWeigthMap$6(weightMap) {
       var paramMappings = [];
       var _a = extractorsFactory$5(weightMap, paramMappings), extractMobilenetV1Params = _a.extractMobilenetV1Params, extractPredictionLayerParams = _a.extractPredictionLayerParams;
       var extra_dim = weightMap['Output/extra_dim'];
@@ -4511,10 +4616,10 @@
           return 'ssd_mobilenetv1_model';
       };
       SsdMobilenetv1.prototype.extractParamsFromWeigthMap = function (weightMap) {
-          return extractParamsFromWeigthMap$5(weightMap);
+          return extractParamsFromWeigthMap$6(weightMap);
       };
       SsdMobilenetv1.prototype.extractParams = function (weights) {
-          return extractParams$5(weights);
+          return extractParams$6(weights);
       };
       return SsdMobilenetv1;
   }(NeuralNetwork));
@@ -4631,7 +4736,7 @@
           extractSeparableConvParams: extractSeparableConvParams
       };
   }
-  function extractParams$6(weights, config, boxEncodingSize, filterSizes) {
+  function extractParams$7(weights, config, boxEncodingSize, filterSizes) {
       var _a = extractWeightsFactory(weights), extractWeights = _a.extractWeights, getRemainingWeights = _a.getRemainingWeights;
       var paramMappings = [];
       var _b = extractorsFactory$6(extractWeights, paramMappings), extractConvParams = _b.extractConvParams, extractConvWithBatchNormParams = _b.extractConvWithBatchNormParams, extractSeparableConvParams = _b.extractSeparableConvParams;
@@ -4694,7 +4799,7 @@
           extractSeparableConvParams: extractSeparableConvParams
       };
   }
-  function extractParamsFromWeigthMap$6(weightMap, config) {
+  function extractParamsFromWeigthMap$7(weightMap, config) {
       var paramMappings = [];
       var _a = extractorsFactory$7(weightMap, paramMappings), extractConvParams = _a.extractConvParams, extractConvWithBatchNormParams = _a.extractConvWithBatchNormParams, extractSeparableConvParams = _a.extractSeparableConvParams;
       var params;
@@ -4899,7 +5004,7 @@
           return '';
       };
       TinyYolov2Base.prototype.extractParamsFromWeigthMap = function (weightMap) {
-          return extractParamsFromWeigthMap$6(weightMap, this.config);
+          return extractParamsFromWeigthMap$7(weightMap, this.config);
       };
       TinyYolov2Base.prototype.extractParams = function (weights) {
           var filterSizes = this.config.filterSizes || TinyYolov2Base.DEFAULT_FILTER_SIZES;
@@ -4907,7 +5012,7 @@
           if (numFilters !== 7 && numFilters !== 8 && numFilters !== 9) {
               throw new Error("TinyYolov2 - expected 7 | 8 | 9 convolutional filters, but found " + numFilters + " filterSizes in config");
           }
-          return extractParams$6(weights, this.config, this.boxEncodingSize, filterSizes);
+          return extractParams$7(weights, this.config, this.boxEncodingSize, filterSizes);
       };
       TinyYolov2Base.prototype.extractBoxes = function (outputTensor, inputBlobDimensions, scoreThreshold) {
           return __awaiter(this, void 0, void 0, function () {
@@ -5223,7 +5328,7 @@
           extractONetParams: extractONetParams
       };
   }
-  function extractParams$7(weights) {
+  function extractParams$8(weights) {
       var _a = extractWeightsFactory(weights), extractWeights = _a.extractWeights, getRemainingWeights = _a.getRemainingWeights;
       var paramMappings = [];
       var _b = extractorsFactory$8(extractWeights, paramMappings), extractPNetParams = _b.extractPNetParams, extractRNetParams = _b.extractRNetParams, extractONetParams = _b.extractONetParams;
@@ -5291,7 +5396,7 @@
           extractONetParams: extractONetParams
       };
   }
-  function extractParamsFromWeigthMap$7(weightMap) {
+  function extractParamsFromWeigthMap$8(weightMap) {
       var paramMappings = [];
       var _a = extractorsFactory$9(weightMap, paramMappings), extractPNetParams = _a.extractPNetParams, extractRNetParams = _a.extractRNetParams, extractONetParams = _a.extractONetParams;
       var pnet = extractPNetParams();
@@ -5793,10 +5898,10 @@
           return 'mtcnn_model';
       };
       Mtcnn.prototype.extractParamsFromWeigthMap = function (weightMap) {
-          return extractParamsFromWeigthMap$7(weightMap);
+          return extractParamsFromWeigthMap$8(weightMap);
       };
       Mtcnn.prototype.extractParams = function (weights) {
-          return extractParams$7(weights);
+          return extractParams$8(weights);
       };
       return Mtcnn;
   }(NeuralNetwork));
