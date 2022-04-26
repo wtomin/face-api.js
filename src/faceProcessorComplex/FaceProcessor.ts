@@ -47,7 +47,7 @@ export abstract class FaceProcessor<
       const bottleneckFeatures = input instanceof NetInput
         ? this.faceFeatureExtractor.forwardInput(input)
         : input
-      return fullyConnectedLayer(tf.relu(fullyConnectedLayer(bottleneckFeatures.as2D(bottleneckFeatures.shape[0], -1), params.fc_1)),params.fc_2) 
+      return fullyConnectedLayer(tf.relu(fullyConnectedLayer(bottleneckFeatures.as2D(bottleneckFeatures.shape[0], -1), params.fc.fc_1)),params.fc.fc_2) 
       
     })
   }
@@ -81,7 +81,7 @@ export abstract class FaceProcessor<
     const cIn = this.getClassifierChannelsIn()
     const cHidden = this.getClassifierChannelsHidden()
     const cOut = this.getClassifierChannelsOut()
-    const classifierWeightSize = (cOut * cHidden ) + cHidden +  (cOut * cOut) +cOut 
+    const classifierWeightSize = (cIn * cHidden ) + cHidden +  (cOut * cOut) +cOut 
 
     const featureExtractorWeights = weights.slice(0, weights.length - classifierWeightSize)
     const classifierWeights = weights.slice(weights.length - classifierWeightSize)
