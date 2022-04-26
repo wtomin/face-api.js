@@ -81,7 +81,7 @@ export abstract class FaceProcessor<
     const cIn = this.getClassifierChannelsIn()
     const cHidden = this.getClassifierChannelsHidden()
     const cOut = this.getClassifierChannelsOut()
-    const classifierWeightSize = (cIn * cHidden ) + cHidden +  (cOut * cOut) +cOut 
+    const classifierWeightSize = (cIn * cHidden ) + cHidden +  (cHidden * cOut) +cOut 
 
     const featureExtractorWeights = weights.slice(0, weights.length - classifierWeightSize)
     const classifierWeights = weights.slice(weights.length - classifierWeightSize)

@@ -12,9 +12,9 @@ export function extractParams(weights: Float32Array, channelsIn: number, channel
 
   const extractFCParams = extractFCParamsFactory(extractWeights, paramMappings)
 
-  const fc_1 = extractFCParams(channelsIn, channelsHidden, 'fc_1')
+  const fc_1 = extractFCParams(channelsIn, channelsHidden, 'fc/fc_1')
 
-  const fc_2 = extractFCParams(channelsHidden, channelsOut, 'fc_2')
+  const fc_2 = extractFCParams(channelsHidden, channelsOut, 'fc/fc_2')
 
   if (getRemainingWeights().length !== 0) {
     throw new Error(`weights remaing after extract: ${getRemainingWeights().length}`)

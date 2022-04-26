@@ -19,8 +19,8 @@ export function extractParamsFromWeigthMap(
 
   const params = {
     fc: {
-      fc_1: extractFcParams('fc_1'),
-      fc_2: extractFcParams('fc_2')
+      fc_1: extractFcParams('fc/fc_1'),
+      fc_2: extractFcParams('fc/fc_2')
     }
   }
 

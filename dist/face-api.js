@@ -3127,14 +3127,14 @@
       var paramMappings = [];
       var _a = extractWeightsFactory(weights), extractWeights = _a.extractWeights, getRemainingWeights = _a.getRemainingWeights;
       var extractFCParams = extractFCParamsFactory(extractWeights, paramMappings);
-      var fc_1 = extractFCParams(channelsIn, channelsHidden, 'fc_1');
-      var fc_2 = extractFCParams(channelsHidden, channelsOut, 'fc_2');
+      var fc_1 = extractFCParams(channelsIn, channelsHidden, 'fc/fc_1');
+      var fc_2 = extractFCParams(channelsHidden, channelsOut, 'fc/fc_2');
       if (getRemainingWeights().length !== 0) {
           throw new Error("weights remaing after extract: " + getRemainingWeights().length);
       }
       return {
           paramMappings: paramMappings,
-          params: { fc_1: fc_1, fc_2: fc_2 }
+          params: { fc: { fc_1: fc_1, fc_2: fc_2 } }
       };
   }
 
@@ -3147,8 +3147,10 @@
           return { weights: weights, bias: bias };
       }
       var params = {
-          fc_1: extractFcParams('fc_1'),
-          fc_2: extractFcParams('fc_2')
+          fc: {
+              fc_1: extractFcParams('fc/fc_1'),
+              fc_2: extractFcParams('fc/fc_2')
+          }
       };
       disposeUnusedWeightTensors(weightMap, paramMappings);
       return { params: params, paramMappings: paramMappings };
@@ -3188,7 +3190,7 @@
               var bottleneckFeatures = input instanceof NetInput
                   ? _this.faceFeatureExtractor.forwardInput(input)
                   : input;
-              return fullyConnectedLayer(Bl(fullyConnectedLayer(bottleneckFeatures.as2D(bottleneckFeatures.shape[0], -1), params.fc_1)), params.fc_2);
+              return fullyConnectedLayer(Bl(fullyConnectedLayer(bottleneckFeatures.as2D(bottleneckFeatures.shape[0], -1), params.fc.fc_1)), params.fc.fc_2);
           });
       };
       FaceProcessor.prototype.dispose = function (throwOnRedispose) {
@@ -3213,7 +3215,7 @@
           var cIn = this.getClassifierChannelsIn();
           var cHidden = this.getClassifierChannelsHidden();
           var cOut = this.getClassifierChannelsOut();
-          var classifierWeightSize = (cOut * cHidden) + cHidden + (cOut * cOut) + cOut;
+          var classifierWeightSize = (cIn * cHidden) + cHidden + (cHidden * cOut) + cOut;
           var featureExtractorWeights = weights.slice(0, weights.length - classifierWeightSize);
           var classifierWeights = weights.slice(weights.length - classifierWeightSize);
           this.faceFeatureExtractor.extractWeights(featureExtractorWeights);
